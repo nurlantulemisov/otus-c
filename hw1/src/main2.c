@@ -48,22 +48,6 @@ struct cfh {
         const uint8_t *comment;  /* File comment. */
 };
 
-/* Local File Header. */
-struct lfh {
-        uint16_t extract_ver;
-        uint16_t gp_flag;
-        uint16_t method;
-        uint16_t mod_time;
-        uint16_t mod_date;
-        uint32_t crc32;
-        uint32_t comp_size;
-        uint32_t uncomp_size;
-        uint16_t name_len;
-        uint16_t extra_len;
-        const uint8_t *name;
-        const uint8_t *extra;
-};
-
 bool read_eocdr(FILE *f, struct eocdr *r, const size_t sz)
 {
     uint32_t signature;
@@ -139,74 +123,11 @@ bool read_cfh(FILE *f, struct cfh *c, size_t f_sz, size_t offset)
 }
 
 
-bool read_lfh(FILE *f, struct lfh *l, size_t f_sz, size_t offset)
-{
-    uint32_t signature;
-
-    if (offset > f_sz || f_sz - offset < LFH_BASE_SZ) {
-        return false;
-    }
-
-    fseek(f, offset, SEEK_SET);
-    
-    size_t retval = fread(&signature, sizeof(signature), 1, f);
-    if (retval == 0) {
-        return false;
-    }
-
-    // printf("sign %p\n", signature);
-
-    if (signature != LFH_SIGNATURE) {
-        return false;
-    }
-
-    fread(&l->extract_ver, sizeof(l->extract_ver), 1, f);
-    fread(&l->gp_flag, sizeof(l->gp_flag), 1, f);
-    fread(&l->method, sizeof(l->method), 1, f);
-    fread(&l->mod_time, sizeof(l->mod_time), 1, f);
-    fread(&l->mod_date, sizeof(l->mod_date), 1, f);
-    fread(&l->crc32, sizeof(l->mod_date), 1, f);
-    fread(&l->comp_size, sizeof(l->comp_size), 1, f);
-    fread(&l->uncomp_size, sizeof(l->uncomp_size), 1, f);
-    fread(&l->name_len, sizeof(l->name_len), 1, f);
-    fread(&l->extra_len, sizeof(l->extra_len), 1, f);
-
-    return true;
-}
-
-uint32_t jpeg_offset(FILE *f)
-{
-    bool is_start_jpeg = false;
-    unsigned char buffer[2];
-    // fread(buffer, sizeof(unsigned char), 2, f);
-
-    const unsigned char jpeg_soi[2] = {0xFF, 0xD8};
-
-    fread(buffer, sizeof(unsigned char), 2, f);
-    if (memcmp(buffer, jpeg_soi, 2) == 0 && sizeof(buffer) == 2) {
-        is_start_jpeg = true;
-    }
-
-    const unsigned char jpeg_eoi[2] = {0xFF, 0xD9};
-    // Read two bytes from the file into the buffer
-    size_t bytesRead;
-    while ((bytesRead = fread(buffer, sizeof(unsigned char), 2, f)) == 2) {
-        if (memcmp(buffer, jpeg_eoi, 2) == 0 && sizeof(buffer) == 2) {
-            if (is_start_jpeg) {
-                printf("FIle is JPEG\n");
-                return ftell(f);
-            }
-        }
-    }
-
-    return 0;
-}
-
 bool is_zip(const char* path)
 {
     if (path == NULL) {
         // return 1;
-        path = "/home/nurlantulemisov/myprojects/otus-clang/hw1/assets/zipjpeg2.jpg";
+        path = "/Users/n.tulemisov/myprojects/otus-c/hw1/assets/zipjpeg2.jpg";
     }
     FILE *f = fopen(path, "rb");
 
@@ -214,10 +135,7 @@ bool is_zip(const char* path)
     size_t size = ftell(f); // get current file pointer
     fseek(f, 0, SEEK_SET); // seek back to beginning of file
     printf("size: %d\n",size);
-
-    uint32_t jp_offset = jpeg_offset(f);
     // fseek(f, 0, SEEK_SET); // seek back to beginning of file
-    printf("start offset: %d\n",jp_offset);
 
     struct eocdr e;
 
@@ -226,19 +144,19 @@ bool is_zip(const char* path)
     }
 
     size_t i = 0;
+    printf("count files: %d\n", e.cd_entries);
 
-    fseek(f, size - EOCDR_BASE_SZ, SEEK_SET);
-    uint32_t offset = ftell(f) - CFH_BASE_SZ;
+    uint16_t count_files = e.cd_entries;
+    uint32_t offset = fseek(f, size - EOCDR_BASE_SZ - CFH_BASE_SZ - 4, SEEK_SET);
 
-    for (i = 0; i < e.cd_entries; i++) {
+    while (count_files >= 0)
+    {
         struct cfh c;
 
         if (!read_cfh(f, &c, size, offset)) {
             return EXIT_FAILURE;
         }
-
-        offset -= CFH_BASE_SZ + c.name_len+c.comment_len+c.extra_len;
-        printf("offset %d \n", offset);
+        offset -= CFH_BASE_SZ - 4;
     }
 
     fclose(f);
