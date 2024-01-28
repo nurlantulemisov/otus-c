@@ -101,7 +101,6 @@ bool insert(HTable* t, char* key, int32_t value, size_t index)
                 return false;
             }
             strcpy(ptr, key);
-            // printf("cant alloc %s\n", t);
             t->values[index].key = ptr;
             t->cap++;
 
