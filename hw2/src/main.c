@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     coding_type* charset_table = NULL;
     for (size_t i = 0; i < sizeof(coding_name); i++)
     {
-        if (strcmp(charset, coding_name[i].name) == 0) {
+        if (strncmp(charset, coding_name[i].name, strlen(charset)) == 0) {
             const coding_type *temp = &coding_name[i];
             charset_table = (coding_type *)temp;
             break;
@@ -114,11 +114,17 @@ int main(int argc, char* argv[])
     FILE *f = fopen(pin, "rb");
     FILE *fout = fopen(pout, "wb");
 
+    if (f == NULL || fout == NULL) {
+        printf("Cannot open file");
+        return EXIT_FAILURE;
+    }
+
     uint8_t buf_8 = '\0';
-    while(fread(&buf_8, sizeof(buf_8), 1, f))
+    while(fread(&buf_8, sizeof(buf_8), 1, f) == sizeof(buf_8))
     {
         if (buf_8 < 0x80) {
             fwrite(&buf_8, 1, 1, fout);
+            continue;
         }
 
         uint16_t out_val = charset_table->table[buf_8 - 0x80];
@@ -127,6 +133,7 @@ int main(int argc, char* argv[])
             utf8Bytes[0] = 0xC0 | (out_val >> 6);
             utf8Bytes[1] = 0x80 | (out_val & 0x3F);
             fwrite(utf8Bytes, sizeof(utf8Bytes), 1, fout);
+            continue;
         }
 
         if (out_val >= 0x0800 && out_val <= 0xFFFF) {
