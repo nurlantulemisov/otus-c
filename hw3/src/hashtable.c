@@ -132,7 +132,7 @@ bool replace_value(HTable* t, char* key, int32_t value, size_t index)
 
 
 /**
- * Добавляет элемент в хэш-таблицу.
+ * Добавляет элемент или заменяет значение в хэш-таблице.
  * 
  * @param t Указатель на хэш-таблицу.
  * @param key Ключ элемента.
@@ -157,7 +157,7 @@ bool put(HTable* t, char* key, int32_t value)
         return false;
     }
 
-	return insert(t, key, value, index);
+    return insert(t, key, value, index);
 }
 
 void iterate(HTable* t, void (*callback)(char*, int32_t)) {
