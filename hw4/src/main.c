@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <curl/curl.h>
 #include <jansson.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include "curl.h"
 
 char *response;
 
@@ -13,19 +13,6 @@ void print_help(void)
     printf("Options:\n");
     printf("  -c <input_path>  City\n");
     printf("  -h               Print this help message\n");
-}
-
-size_t write_response(void *contents, size_t size, size_t nmemb)
-{
-    size_t realsize = size * nmemb;
-    response = realloc(response, response ? strlen(response) + realsize + 1 : realsize + 1);
-    if (response == NULL)
-    {
-        return 0;
-    }
-    memcpy(&(response[strlen(response)]), contents, realsize);
-    response[strlen(response) + realsize] = 0;
-    return realsize;
 }
 
 const char *convert_to_angle(int angle)
@@ -130,61 +117,44 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    CURL *curl;
-    CURLcode res;
-
-    response = malloc(1);
-    *response = '\0';
-
-    curl_global_init(CURL_GLOBAL_ALL);
-
-    curl = curl_easy_init();
+    HTTPCli *cli = new_http_cli();
+    if (cli == NULL)
+    {
+        return EXIT_FAILURE;
+    }
 
     char url[100];
-
     sprintf(url, "https://wttr.in/%s?format=j1", city);
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_response);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)response);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
-
-    res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK)
+    char *response = do_request(cli, url);
+    if (response == NULL)
     {
-        fprintf(stderr, "curl failed: %s\n", curl_easy_strerror(res));
+        return EXIT_FAILURE;
     }
-    else
-    {
-        json_error_t error;
-        json_t *root = json_loads(response, 0, &error);
 
-        if (root)
+    json_error_t error;
+    json_t *root = json_loads(response, 0, &error);
+
+    if (root)
+    {
+        printf("City: %s\n", city);
+        const char *location = wheather_location(root);
+        printf("Location: %s\n", location);
+
+        json_t *current_condition = json_object_get(root, "current_condition");
+        if (json_array_size(current_condition) > 0)
         {
-            printf("City: %s\n", city);
-            const char *location = wheather_location(root);
-            printf("Location: %s\n", location);
+            const char *temp_c = condition_field(current_condition, "temp_C");
+            const char *weather_desc = condition_field(current_condition, "weatherDesc");
+            const char *wind_speed = condition_field(current_condition, "windspeedKmph");
+            const char *wind_degree = condition_field(current_condition, "winddirDegree");
 
-            json_t *current_condition = json_object_get(root, "current_condition");
-            if (json_array_size(current_condition) > 0)
-            {
-                const char *temp_c = condition_field(current_condition, "temp_C");
-                const char *weather_desc = condition_field(current_condition, "weatherDesc");
-                const char *wind_speed = condition_field(current_condition, "windspeedKmph");
-                const char *wind_degree = condition_field(current_condition, "winddirDegree");
-
-                printf("Temprature: %s\nWeather description: %s\nWind speed: %s\nWind degree: %s", temp_c, weather_desc, wind_speed, convert_to_angle(atoi(wind_degree)));
-            }
-
-            json_decref(root);
+            printf("Temprature: %s\nWeather description: %s\nWind speed: %s\nWind degree: %s", temp_c, weather_desc, wind_speed, convert_to_angle(atoi(wind_degree)));
         }
+
+        json_decref(root);
     }
 
-    curl_easy_cleanup(curl);
-    free(response);
-
-    curl_global_cleanup();
+    clear(cli);
 
     return EXIT_SUCCESS;
 }
