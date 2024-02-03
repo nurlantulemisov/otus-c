@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/cc  -Wall -Wextra -Wpedantic -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk -mmacosx-version-min=14.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/myprogram.dir/src/main.c.o CMakeFiles/myprogram.dir/src/hashtable.c.o -o myprogram  libhashtable.a 
