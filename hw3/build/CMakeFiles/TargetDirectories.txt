@@ -1,0 +1,4 @@
+/Users/n.tulemisov/myprojects/otus-c/hw3/build/CMakeFiles/myprogram.dir
+/Users/n.tulemisov/myprojects/otus-c/hw3/build/CMakeFiles/hashtable.dir
+/Users/n.tulemisov/myprojects/otus-c/hw3/build/CMakeFiles/edit_cache.dir
+/Users/n.tulemisov/myprojects/otus-c/hw3/build/CMakeFiles/rebuild_cache.dir
