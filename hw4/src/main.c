@@ -11,7 +11,7 @@ void print_help(void)
 {
     printf("Usage: ./myprog -c <input_path>\n");
     printf("Options:\n");
-    printf("  -c <input_path>  City\n");
+    printf("  -c <input_city>  City\n");
     printf("  -h               Print this help message\n");
 }
 
@@ -113,13 +113,14 @@ int main(int argc, char *argv[])
 
     if (city == NULL)
     {
-        printf("Missing required options: -c\n");
+        perror("Missing required options: -c\n");
         return EXIT_FAILURE;
     }
 
     HTTPCli *cli = new_http_cli();
     if (cli == NULL)
     {
+        perror("create http client");
         return EXIT_FAILURE;
     }
 
@@ -128,6 +129,7 @@ int main(int argc, char *argv[])
     char *response = do_request(cli, url);
     if (response == NULL)
     {
+        perror("request error");
         return EXIT_FAILURE;
     }
 

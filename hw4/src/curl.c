@@ -2,13 +2,7 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct
-{
-    CURL *curl;
-    char *response;
-    uint32_t timeout;
-} HTTPCli;
+#include "curl.h"
 
 size_t write_response(void *contents, size_t size, size_t nmemb, void *userdata)
 {
