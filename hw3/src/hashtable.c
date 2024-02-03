@@ -2,20 +2,7 @@
 #include <stdbool.h>
 #include <strings.h>
 #include <stdio.h>
-
-typedef struct
-{
-    char *key;
-    int32_t v;
-} bucket;
-
-typedef struct
-{
-    size_t size;
-    size_t cap;
-    bucket *values;
-    uint32_t collision;
-} HTable;
+#include "hashtable.h"
 
 /**
  * Выделяет память и инициализирует новую хэш-таблицу.
@@ -40,12 +27,17 @@ HTable *new_table(size_t sz, uint32_t collision)
     return p;
 }
 
-size_t hash(HTable *t, char *key)
+size_t hash(HTable *t, const char *key)
 {
     uint32_t h = 0;
     size_t keyLength = strlen(key);
     for (size_t i = 0; i < keyLength; i++)
     {
+        /*
+            Умножение на 31 в данной хэш-функции является распространенной практикой в алгоритмах хэширования строк.
+            Выбор числа 31 основан на эмпирических данных и характеристиках английского языка.
+            Это простое нечетное простое число, и умножение на нечетное простое число помогает более эффективно распределять символы, уменьшая количество коллизий в хэш-таблице.
+        */
         h = h * 31 + key[i];
     }
     return h % t->size;
@@ -80,24 +72,50 @@ bool grow_bucket_size(HTable *t)
     return true;
 }
 
-int32_t get(HTable *t, char *key)
+size_t find_index(HTable *t, const char *key, size_t initialIndex)
 {
-    size_t index = hash(t, key);
-    size_t i = 0;
-
-    for (i = 0; i < t->collision; i++)
+    size_t index = initialIndex;
+    
+    for (size_t i = 0; i < t->collision; i++)
     {
-        if (t->values[index].key != NULL && strncmp(t->values[index].key, key, strlen(key)) == 0)
+        const char *curr_key = t->values[index].key;
+        if (curr_key != NULL && strncmp(curr_key, key, strlen(curr_key)) == 0)
         {
-            return t->values[index].v;
+            return index;
         }
         index = (index + 1) % t->size;
     }
 
-    return -1;
+    return SIZE_MAX;  // Indicate not found
 }
 
-bool insert(HTable *t, char *key, int32_t value, size_t index)
+bool replace_value(HTable *t, const char *key, int32_t value, size_t index)
+{
+    size_t foundIndex = find_index(t, key, index);
+
+    if (foundIndex != SIZE_MAX)
+    {
+        t->values[foundIndex].v = value;
+        return true;
+    }
+
+    return false;
+}
+
+uint32_t get(HTable *t, const char *key)
+{
+    size_t index = hash(t, key);
+    size_t foundIndex = find_index(t, key, index);
+
+    if (foundIndex != SIZE_MAX)
+    {
+        return t->values[foundIndex].v;
+    }
+
+    return UINT32_MAX;
+}
+
+bool insert(HTable *t, const char *key, int32_t value, size_t index)
 {
     size_t i = 0;
 
@@ -124,24 +142,6 @@ bool insert(HTable *t, char *key, int32_t value, size_t index)
     return false;
 }
 
-bool replace_value(HTable *t, char *key, int32_t value, size_t index)
-{
-    size_t i = 0;
-
-    for (i = 0; i < t->collision; i++)
-    {
-        if (t->values[index].key != NULL && strncmp(t->values[index].key, key, strlen(key)) == 0)
-        {
-            t->values[index].v = value;
-
-            return true;
-        }
-        index = (index + 1) % t->size;
-    }
-
-    return false;
-}
-
 /**
  * Добавляет элемент или заменяет значение в хэш-таблице.
  *
@@ -155,12 +155,12 @@ bool replace_value(HTable *t, char *key, int32_t value, size_t index)
  * При этом выделяется новый блок памяти большего размера, копируются все существующие элементы в новый блок памяти,
  * а старый блок памяти освобождается.
  */
-bool put(HTable *t, char *key, int32_t value)
+bool put(HTable *t, const char *key, uint32_t value)
 {
     size_t index = hash(t, key);
-    int32_t old_v = get(t, key);
+    uint32_t old_v = get(t, key);
 
-    if (old_v != -1)
+    if (old_v < UINT32_MAX)
     {
         return replace_value(t, key, value, index);
     }
@@ -173,7 +173,7 @@ bool put(HTable *t, char *key, int32_t value)
     return insert(t, key, value, index);
 }
 
-void iterate(HTable *t, void (*callback)(char *, int32_t))
+void iterate(HTable *t, void (*callback)(const char *, uint32_t))
 {
     for (size_t i = 0; i < t->size; i++)
     {

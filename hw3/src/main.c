@@ -1,16 +1,17 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 #include "hashtable.h"
 
-void printCallback(char *key, int32_t value)
+void printCallback(const char *key, uint32_t value)
 {
     printf("Key: %s, Value: %d\n", key, value);
 }
 
 void print_help(void)
 {
-    printf("Usage: ./myprog -i <input_path> -o <output_path> -c <charset>\n");
+    printf("Usage: ./myprog -i <input_path>\n");
     printf("Options:\n");
     printf("  -i <input_path>  Input file path\n");
     printf("  -h               Print this help message\n");
@@ -39,59 +40,67 @@ int main(int argc, char *argv[])
 
     if (pin == NULL)
     {
-        printf("Missing required options: -i, -o, -c\n");
+        perror("Missing required options: -i, -o, -c\n");
         return EXIT_FAILURE;
     }
 
     FILE *f = fopen(pin, "rb");
     if (f == NULL)
     {
-        printf("Failed open file");
+        perror("Failed open file");
         return EXIT_FAILURE;
     }
+
+    fseek(f, 0, SEEK_END);
+    long file_size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char *buffer = (char *)malloc(file_size + 1);
+
+    if (buffer == NULL)
+    {
+        perror("Not init buffer");
+        fclose(f);
+        return EXIT_FAILURE;
+    }
+
+    size_t read_size = fread(buffer, 1, file_size, f);
+
+    buffer[read_size] = '\0';
+
+    const char *word = strtok(buffer, " ,.\n\t");
 
     HTable *t = new_table(10, 10);
     if (t == NULL)
     {
-        printf("Failed init hashmap");
+        fclose(f);
+        free(buffer);
+        perror("Failed init hashmap");
         return EXIT_FAILURE;
     }
 
-    int ch;
-    size_t str_len = 0;
-    while ((ch = fgetc(f)) != EOF)
+    while (word != NULL)
     {
-        if (ch == ' ' || ch == '.' || ch == ',' || ch == '\n' || ch == '\t')
+        uint32_t v = get(t, word);
+        if (v == UINT32_MAX)
         {
-            if (str_len != 0)
-            {
-                fseek(f, -str_len - 1, SEEK_CUR);
-                char *word = (char *)malloc((str_len + 1) * sizeof(char));
-                fread(word, sizeof(char), str_len, f);
-                word[str_len] = '\0'; // Добавляем завершающий нулевой символ
-
-                int32_t v = get(t, word);
-                if (v == -1)
-                {
-                    v = 0;
-                }
-                if (!put(t, word, ++v))
-                {
-                    printf("Could not add. key: %s => value: %d\n", word, v);
-                    return EXIT_FAILURE;
-                }
-                free(word);
-                str_len = 0;
-            }
-            continue;
+            v = 0;
         }
-        str_len++;
+
+        if (!put(t, word, ++v))
+        {
+            printf("Could not add. key: %s => value: %d\n", word, v);
+            return EXIT_FAILURE;
+        }
+
+        word = strtok(NULL, " ,.\n\t");
     }
 
     iterate(t, printCallback);
 
     clear(t);
     fclose(f);
+    free(buffer);
 
     return EXIT_SUCCESS;
 }
