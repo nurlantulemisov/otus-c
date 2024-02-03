@@ -1,20 +1,21 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wpedantic -std=c11
-LDFLAGS = -lcurl -ljansson
+LDFLAGS = -ljansson -lcurl -Lsrc -lccurl
 SOURCES = ./src/main.c ./src/curl.c
 OBJECTS = $(SOURCES:.c=.o)
 EXECUTABLE = myprogram
+LIBRARY = src/libccurl.a
 
-all: $(SOURCES) $(EXECUTABLE)
+all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS) libccurl.a
-	$(CC) $(CFLAGS) src/main.o -o $@ $(LDFLAGS) -Lsrc -lccurl
+$(EXECUTABLE): $(OBJECTS) $(LIBRARY)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $@ $(LDFLAGS)
+
+$(LIBRARY): src/curl.o
+	ar cr $@ $^
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 
-libccurl.a:
-	ar cr src/libccurl.a src/curl.o
-
 clean:
-	rm -f $(OBJECTS) $(EXECUTABLE) src/libccurl.a
+	rm -f $(OBJECTS) $(EXECUTABLE) $(LIBRARY)
