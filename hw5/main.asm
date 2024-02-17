@@ -1,5 +1,5 @@
     bits 64 ;;; разрядность машины
-    extern malloc, puts, printf, fflush, abort ;;; функции которые будут использоваться 
+    extern malloc, puts, printf, fflush, abort, free ;;; функции которые будут использоваться 
     global main  ;;; точка входа
 
     section   .data
@@ -58,7 +58,7 @@ add_element:
     pop rbp             ; восстанавливаем значение стека
     ret
 
-;;; m proc
+;;; m proc forEach
 m:
     push rbp            ; 
     mov rbp, rsp        ;
@@ -73,12 +73,16 @@ m:
     mov rbx, rdi        ; copy rbx
     mov rbp, rsi        ; copy rsi
 
-    mov rdi, [rdi]      ; get value
+process_loop:
+    mov rdi, [rbx]      ; get value
     call rsi            ; print value
+    
+    mov rsi, rbp        ; copy func
 
     mov rdi, [rbx + 8]  ; 
-    mov rsi, rbp
-    call m
+    mov rbx, rdi        ; update rbx with new value
+    test rbx, rbx       ; check if rbx is null
+    jnz process_loop    ; if not null, continue the loop
 
     pop rbx
     pop rbp
@@ -88,45 +92,63 @@ outm:
     pop rbp
     ret
 
-;;; f proc
 f:
-    mov rax, rsi        ;
-
-    test rdi, rdi       ; if ptr == null
-    jz outf
-
     push rbx
     push r12
     push r13
 
-    mov rbx, rdi        ; ptr struct
-    mov r12, rsi        ; empty pointer
-    mov r13, rdx        ; p func
+loop_start:
+    mov rax, rsi
+    mov rbx, rdi
+    mov r12, rsi
+    mov r13, rdx
 
-    mov rdi, [rdi]      ; value from struct
-    call rdx            ; 
-    test rax, rax       ; ищем 15 и 23 
-    jz z                ;
+    test rdi, rdi
+    jz loop_end                    ; ptr == null
 
-    mov rdi, [rbx]      ;   value from struct
-    mov rsi, r12        ;   copy ptr
-    call add_element    ;   create struct
-    mov rsi, rax        ;   ptr struct to rsi
-    jmp ff              ; jmp ff
+    mov rdi, [rdi]                 ; get value
+    call rdx
+    test rax, rax
+    jz z
+
+    mov rdi, [rbx]
+    mov rsi, r12
+    call add_element
+    mov rsi, rax
+
+loop_continue:
+    mov rdi, [rbx + 8]             ; ptr = ptr->next
+    mov rdx, r13
+    jmp loop_start
 
 z:
     mov rsi, r12
+    jmp loop_continue
 
-ff:
-    mov rdi, [rbx + 8]  ; ptr->next
-    mov rdx, r13        ; p func
-    call f              ; 
-
+loop_end:
     pop r13
     pop r12
     pop rbx
+    ret
 
-outf:
+free_list:
+
+.loop_start
+    test rdi, rdi
+    jz .loop_end 
+
+    mov rsi, [rdi + 8]
+    call free_node
+
+    mov rdi, rsi
+
+    jmp .loop_start
+
+.loop_end:
+    ret
+
+free_node:
+    call free
     ret
 
 ;;; main proc
@@ -143,6 +165,7 @@ adding_loop:
     jnz adding_loop
 
     mov rbx, rax                    ; copy pointer
+    mov r8, rax                     ; copy list
 
     mov rdi, rax                    ; copy pointer
     mov rsi, print_int              ; передача функции print_int
@@ -159,6 +182,12 @@ adding_loop:
     mov rdi, rax
     mov rsi, print_int
     call m
+
+    mov rdi, rax
+    call free_list
+
+    mov rdi, r8
+    call free_list
 
     mov rdi, empty_str
     call puts
