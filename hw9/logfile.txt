@@ -1,0 +1,49 @@
+I main.c:10: infoooo 10
+D main.c:11: infoooo 10
+F main.c:13: 10
+E main.c:15: infoooo 10
+I main.c:10: infoooo 10
+D main.c:11: infoooo 10
+F main.c:13: 10
+E main.c:15: infoooo 10
+Backtrace:
+0   logger                              0x00000001001c7b28 print_backtrace + 48
+1   logger                              0x00000001001c7a1c logger_log + 364
+2   logger                              0x00000001001c779c main + 532
+3   dyld                                0x0000000181801058 start + 2224
+I main.c:10: infoooo 10
+D main.c:11: infoooo 10
+F main.c:13: 10
+E main.c:15: infoooo 10
+Backtrace:
+0   logger                              0x0000000100567b28 print_backtrace + 48
+1   logger                              0x0000000100567a1c logger_log + 364
+2   logger                              0x000000010056779c main + 532
+3   dyld                                0x0000000181801058 start + 2224
+I main.c:10: infoooo 10
+D main.c:11: infoooo 10
+F main.c:13: 10
+E main.c:15: infoooo 10
+Backtrace:
+0   logger                              0x0000000102d53b28 print_backtrace + 48
+1   logger                              0x0000000102d53a1c logger_log + 364
+2   logger                              0x0000000102d5379c main + 532
+3   dyld                                0x0000000181801058 start + 2224
+I main.c:10: infoooo 10
+D main.c:11: infoooo 10
+F main.c:13: 10
+E main.c:15: infoooo 10
+Backtrace:
+0   logger                              0x00000001042c7b10 print_backtrace + 48
+1   logger                              0x00000001042c7a04 logger_log + 364
+2   logger                              0x00000001042c76fc main + 532
+3   dyld                                0x0000000181801058 start + 2224
+I main.c:10: infoooo 10
+D main.c:11: infoooo 10
+F main.c:13: 10
+E main.c:15: infoooo 10
+Backtrace:
+0   logger                              0x00000001023bbb10 print_backtrace + 48
+1   logger                              0x00000001023bba04 logger_log + 364
+2   logger                              0x00000001023bb6fc main + 532
+3   dyld                                0x0000000181801058 start + 2224
