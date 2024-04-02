@@ -8,6 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build/bin")
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-add_executable(mmap src/main.c)
+add_executable(logparser src/main.c)
 
 

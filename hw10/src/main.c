@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +43,7 @@ int lockfile(int fd) {
   return (fcntl(fd, F_SETLK, &fl));
 }
 
-bool validate_is_already_worked() {
+bool validate_is_already_worked(void) {
   char buf[16];
   int fd = open(LOCKFILE, O_RDWR | O_CREAT, LOCKMODE);
   if (fd < 0) {
@@ -73,7 +74,7 @@ void print_debug(const char *format, ...) {
   }
 }
 
-bool unix_socket_server() {
+bool unix_socket_server(void) {
   int sock = socket(AF_UNIX, SOCK_STREAM, 0);
   if (sock < 0) {
     perror("opening stream socket");
@@ -120,7 +121,7 @@ bool unix_socket_server() {
   return true;
 }
 
-void daemonize() {
+void daemonize(void) {
   openlog("usd", LOG_PID | LOG_NDELAY, LOG_DAEMON);
   /*
    * Сбросить маску режима создания файла.
