@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw12/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw12/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -o CMakeFiles/MyLibs.dir/src/circular_buffer.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw12/src/circular_buffer.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw12/src/circular_buffer.c",
+  "output": "CMakeFiles/MyLibs.dir/src/circular_buffer.c.o"
+},
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw12/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw12/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -o CMakeFiles/MyLibs.dir/src/main.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw12/src/main.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw12/src/main.c",
+  "output": "CMakeFiles/MyLibs.dir/src/main.c.o"
+},
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw12/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw12/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -o CMakeFiles/MyLibs.dir/src/thread_pool.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw12/src/thread_pool.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw12/src/thread_pool.c",
+  "output": "CMakeFiles/MyLibs.dir/src/thread_pool.c.o"
+},
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw12/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw12/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -Wall -Wextra -Wpedantic -o CMakeFiles/logparser.dir/src/main.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw12/src/main.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw12/src/main.c",
+  "output": "CMakeFiles/logparser.dir/src/main.c.o"
+},
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw12/build/test",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw12/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -o CMakeFiles/test_circular_buffer.dir/test_circular_buffer.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw12/test/test_circular_buffer.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw12/test/test_circular_buffer.c",
+  "output": "test/CMakeFiles/test_circular_buffer.dir/test_circular_buffer.c.o"
+}
+]
