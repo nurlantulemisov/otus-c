@@ -18,7 +18,7 @@ typedef struct {
 
 thread_pool_t *create_pool(size_t num_threads, cir_buffer_t *buf);
 
-void add_to_pool(thread_pool_t *t_pool, char *s);
+void add_to_pool(thread_pool_t *t_pool, char *filename, callback cb);
 
 void stop_pool(thread_pool_t *t_pool);
 

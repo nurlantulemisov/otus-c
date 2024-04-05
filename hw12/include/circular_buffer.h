@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+typedef void (*callback)(void *);
+
 typedef struct {
   void (*function)(
       void *arg); // Указатель на функцию, которая должна быть выполнена

@@ -60,7 +60,7 @@ static void *thread_executor(void *args) {
   }
 }
 
-void add_to_pool(thread_pool_t *t_pool, char *s) {
+void add_to_pool(thread_pool_t *t_pool, char *filename, callback cb) {
   pthread_mutex_lock(&t_pool->mu);
 
   while (t_pool->b->full) {
@@ -69,8 +69,8 @@ void add_to_pool(thread_pool_t *t_pool, char *s) {
   }
 
   task_t *task = (task_t *)malloc(sizeof(task_t));
-  task->function = (void *)printf;
-  task->arg = (void *)s;
+  task->function = cb;
+  task->arg = (void *)filename;
 
   if (!cir_buffer_put(t_pool->b, task)) {
     printf("should be never");
