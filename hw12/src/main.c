@@ -1,7 +1,6 @@
 #include "circular_buffer.h"
 #include "thread_pool.h"
 #include <dirent.h>
-#include <errno.h>
 #include <stdatomic.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -102,13 +101,9 @@ int main(int argc, char *argv[]) {
   while ((entry = readdir(dir)) != NULL) {
     if (entry->d_type == DT_REG) {
       // +2 для разделителя и завершающего нулевого символа
-      size_t p_size = strlen(dirname) + strlen(entry->d_name) + 2;
-      char *full_path = (char *)malloc(p_size);
-
-      if (full_path != NULL) {
-        snprintf(full_path, p_size, "%s/%s", dirname, entry->d_name);
-        add_to_pool(pool, full_path, process_file);
-      }
+      char full_path[MAX_LEN];
+      snprintf(full_path, sizeof(full_path), "%s/%s", dirname, entry->d_name);
+      add_to_pool(pool, full_path, process_file);
     }
   }
 

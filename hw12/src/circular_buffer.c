@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/_types/_size_t.h>
 
 cir_buffer_t *create_cir_buffer(size_t max) {
   cir_buffer_t *buf = (cir_buffer_t *)malloc(sizeof(cir_buffer_t));
@@ -25,11 +27,17 @@ cir_buffer_t *create_cir_buffer(size_t max) {
 }
 
 bool cir_buffer_put(cir_buffer_t *buf, task_t *t) {
+  printf("head: %zu, tail: %zu, full: %s", buf->head, buf->tail,
+         buf->full ? "true" : "false");
   if (buf->full) {
     return false;
   }
 
-  buf->tasks[buf->head] = t;
+  task_t *new_t = (task_t *)malloc(sizeof(task_t));
+  new_t->arg = strdup((char *)t->arg);
+  new_t->function = t->function;
+
+  buf->tasks[buf->head] = new_t;
 
   buf->head = (buf->head + 1) % buf->max;
 
@@ -40,7 +48,8 @@ bool cir_buffer_put(cir_buffer_t *buf, task_t *t) {
 
 task_t *cir_buffer_get(cir_buffer_t *buf) {
   buf->full = false;
-
+  printf("\nhead: %zu, tail: %zu, full: %s", buf->head, buf->tail,
+         buf->full ? "true" : "false");
   task_t *t = buf->tasks[buf->tail];
   buf->tasks[buf->tail] = NULL;
 
@@ -60,22 +69,26 @@ size_t cir_buffer_size(cir_buffer_t *buf) {
 }
 
 static void task_free(cir_buffer_t *buf, task_t **tasks) {
+  printf("\nfree head: %zu, tail: %zu, full: %s, max: %zu", buf->head,
+         buf->tail, buf->full ? "true" : "false", buf->max);
   if (tasks != NULL) {
-    for (int i = 0; i < buf->max; i++) {
+    for (size_t i = 0; i < buf->max; i++) {
       if (tasks[i] != NULL) {
+        printf("\n %s", tasks[i]->arg);
         free(tasks[i]->arg);
         free(tasks[i]);
 
         tasks[i] = NULL;
       }
     }
-    free(tasks); // Освобождение памяти для массива tasks
   }
 }
 
 void cir_buffer_free(cir_buffer_t *buf) {
   if (buf != NULL) {
     task_free(buf, buf->tasks);
+    free(buf->tasks); // Освобождение памяти для массива tasks
+
     free(buf);
   }
 }

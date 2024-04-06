@@ -68,14 +68,8 @@ void add_to_pool(thread_pool_t *t_pool, char *filename, callback cb) {
     pthread_cond_wait(&t_pool->full, &t_pool->mu);
   }
 
-  task_t *task = (task_t *)malloc(sizeof(task_t));
-  task->function = cb;
-  task->arg = (void *)filename;
-
-  if (!cir_buffer_put(t_pool->b, task)) {
-    printf("should be never");
-    free(task->arg);
-    free(task); // todo подумать
+  task_t task = {.function = cb, .arg = (void *)filename};
+  if (!cir_buffer_put(t_pool->b, &task)) {
     pthread_mutex_unlock(&t_pool->mu);
     return;
   }

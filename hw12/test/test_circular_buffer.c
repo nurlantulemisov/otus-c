@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
+
+#include "hashtable_test.c"
 
 // Тестирование создания кольцевого буфера
 void test_create_cir_buffer() {
@@ -17,14 +20,22 @@ void test_create_cir_buffer() {
   cir_buffer_free(buf);
 }
 
+int compare_strings(void *ptr1, void *ptr2) {
+  char *str1 = (char *)ptr1; // Приведение void * к char *
+  char *str2 = (char *)ptr2; // Приведение void * к char *
+
+  // Сравнение строк с помощью strcmp
+  return strcmp(str1, str2);
+}
+
 // Тестирование добавления и извлечения заданий из кольцевого буфера
 void test_buffer_operations() {
   size_t max = 3;
   cir_buffer_t *buf = create_cir_buffer(max);
   assert(buf != NULL);
 
-  task_t task1 = {.function = NULL, .arg = NULL};
-  task_t task2 = {.function = NULL, .arg = NULL};
+  task_t task1 = {.function = NULL, .arg = "cdcdcd"};
+  task_t task2 = {.function = NULL, .arg = "cdscdsdcsd"};
 
   // Проверяем добавление задания в буфер
   bool success = cir_buffer_put(buf, &task1);
@@ -40,21 +51,14 @@ void test_buffer_operations() {
 
   // Проверяем извлечение задания из буфера
   task_t *retrieved_task = cir_buffer_get(buf);
-  assert(retrieved_task ==
-         &task1); // Ожидаем получить первое добавленное задание
-  assert(buf->tail == 1); // После извлечения одного задания, tail должен
-                          // указывать на следующий элемент
+  assert(compare_strings(retrieved_task->arg, task1.arg) == 0);
+  assert(buf->tail == 1);
 
-  // Проверяем извлечение второго задания
   retrieved_task = cir_buffer_get(buf);
-  assert(retrieved_task ==
-         &task2); // Ожидаем получить второе добавленное задание
-  assert(buf->tail == 2); // После извлечения второго задания, tail должен
-                          // указывать на следующий элемент
+  assert(compare_strings(retrieved_task->arg, task2.arg) == 0);
+  assert(buf->tail == 2);
 
-  // Проверяем, что буфер пуст после извлечения всех заданий
-  assert(!cir_buffer_get(
-      buf)); // Ожидаем, что извлечение из пустого буфера вернет NULL
+  assert(!cir_buffer_get(buf));
 
   cir_buffer_free(buf);
 }
@@ -64,10 +68,10 @@ void test_buffer_operations_full_buffer() {
   cir_buffer_t *buf = create_cir_buffer(max);
   assert(buf != NULL);
 
-  task_t task1 = {.function = NULL, .arg = NULL};
-  task_t task2 = {.function = NULL, .arg = NULL};
-  task_t task3 = {.function = NULL, .arg = NULL};
-  task_t task4 = {.function = NULL, .arg = NULL};
+  task_t task1 = {.function = NULL, .arg = "cdcdcd"};
+  task_t task2 = {.function = NULL, .arg = "cdcsdcsd"};
+  task_t task3 = {.function = NULL, .arg = "csdsdcsd"};
+  task_t task4 = {.function = NULL, .arg = "sdcsdcdscd"};
 
   // Проверяем добавление задания в буфер
   bool success = cir_buffer_put(buf, &task1);
@@ -81,7 +85,7 @@ void test_buffer_operations_full_buffer() {
   // максимальной вместимости
   success = cir_buffer_put(buf, &task4);
   assert(!success); // Ожидаем неуспешное добавление задания из-за превышения
-                    // максимальной вместимости
+  // максимальной вместимости
 
   cir_buffer_free(buf);
 }
@@ -90,6 +94,11 @@ int main() {
   test_create_cir_buffer();
   test_buffer_operations();
   test_buffer_operations_full_buffer();
+
+  test_create_and_free_hash_table();
+  test_hash_table_put();
+  test_hash_table_get();
+
   printf("All tests passed successfully!\n");
   return 0;
 }
