@@ -23,7 +23,9 @@ typedef struct {
 
 hash_t *create_hash_t(size_t sz);
 void hash_t_put(hash_t *t, const char *key, uint64_t value);
+void hash_t_inc(hash_t *t, const char *key);
 bool hash_t_get(hash_t *t, const char *key, uint64_t *value);
 void hash_t_free(hash_t *t);
+void print_hash_t(hash_t *t);
 
 #endif // !HASHTABLE_H

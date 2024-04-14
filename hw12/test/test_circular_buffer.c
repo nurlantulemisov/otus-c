@@ -98,6 +98,7 @@ int main() {
   test_create_and_free_hash_table();
   test_hash_table_put();
   test_hash_table_get();
+  test_hash_table_inc();
 
   printf("All tests passed successfully!\n");
   return 0;

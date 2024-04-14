@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/_types/_size_t.h>
@@ -58,6 +59,38 @@ void hash_t_put(hash_t *t, const char *key, uint64_t value) {
   return;
 }
 
+void hash_t_inc(hash_t *t, const char *key) {
+  uint32_t bucket_id = hash(t, key);
+
+  pthread_mutex_lock(&t->mus[bucket_id]);
+
+  bucket_t *current = t->buckets[bucket_id];
+  while (current != NULL) {
+    if (strncmp(current->key, key, strlen(current->key)) == 0) {
+      current->val++;
+      pthread_mutex_unlock(&t->mus[bucket_id]);
+
+      return;
+    }
+    if (current->next == NULL)
+      break;
+    current = current->next;
+  }
+
+  bucket_t *buc = (bucket_t *)malloc(sizeof(bucket_t));
+  buc->key = strndup(key, strlen(key));
+  buc->val = 1;
+  if (current == NULL) {
+    t->buckets[bucket_id] = buc;
+  } else {
+    current->next = buc;
+  }
+
+  pthread_mutex_unlock(&t->mus[bucket_id]);
+
+  return;
+}
+
 bool hash_t_get(hash_t *t, const char *key, uint64_t *value) {
   uint32_t bucket_id = hash(t, key);
   pthread_mutex_lock(&t->mus[bucket_id]);
@@ -77,6 +110,24 @@ bool hash_t_get(hash_t *t, const char *key, uint64_t *value) {
 
   pthread_mutex_unlock(&t->mus[bucket_id]);
   return false;
+}
+
+void print_hash_t(hash_t *t) {
+  if (t == NULL) {
+    printf("Hash table is NULL\n");
+    return;
+  }
+
+  printf("Printing hash table values:\n");
+
+  for (size_t i = 0; i < t->cap; ++i) {
+    bucket_t *current_bucket = t->buckets[i];
+    while (current_bucket != NULL) {
+      printf("Key: %s, Value: %llu\n", current_bucket->key,
+             current_bucket->val);
+      current_bucket = current_bucket->next;
+    }
+  }
 }
 
 void hash_t_free(hash_t *t) {

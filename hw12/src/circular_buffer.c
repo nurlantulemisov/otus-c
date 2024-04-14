@@ -27,8 +27,6 @@ cir_buffer_t *create_cir_buffer(size_t max) {
 }
 
 bool cir_buffer_put(cir_buffer_t *buf, task_t *t) {
-  printf("head: %zu, tail: %zu, full: %s", buf->head, buf->tail,
-         buf->full ? "true" : "false");
   if (buf->full) {
     return false;
   }
@@ -48,8 +46,6 @@ bool cir_buffer_put(cir_buffer_t *buf, task_t *t) {
 
 task_t *cir_buffer_get(cir_buffer_t *buf) {
   buf->full = false;
-  printf("\nhead: %zu, tail: %zu, full: %s", buf->head, buf->tail,
-         buf->full ? "true" : "false");
   task_t *t = buf->tasks[buf->tail];
   buf->tasks[buf->tail] = NULL;
 
@@ -69,12 +65,9 @@ size_t cir_buffer_size(cir_buffer_t *buf) {
 }
 
 static void task_free(cir_buffer_t *buf, task_t **tasks) {
-  printf("\nfree head: %zu, tail: %zu, full: %s, max: %zu", buf->head,
-         buf->tail, buf->full ? "true" : "false", buf->max);
   if (tasks != NULL) {
     for (size_t i = 0; i < buf->max; i++) {
       if (tasks[i] != NULL) {
-        printf("\n %s", tasks[i]->arg);
         free(tasks[i]->arg);
         free(tasks[i]);
 
