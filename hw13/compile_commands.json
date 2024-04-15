@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw13/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw13/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -o CMakeFiles/MyLibs.dir/src/main.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw13/src/main.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw13/src/main.c",
+  "output": "CMakeFiles/MyLibs.dir/src/main.c.o"
+},
+{
+  "directory": "/Users/n.tulemisov/myprojects/otus-c/hw13/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/n.tulemisov/myprojects/otus-c/hw13/include -std=gnu11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -Wall -Wextra -Wpedantic -o CMakeFiles/ascii-cli.dir/src/main.c.o -c /Users/n.tulemisov/myprojects/otus-c/hw13/src/main.c",
+  "file": "/Users/n.tulemisov/myprojects/otus-c/hw13/src/main.c",
+  "output": "CMakeFiles/ascii-cli.dir/src/main.c.o"
+}
+]
