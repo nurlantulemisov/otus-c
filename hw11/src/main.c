@@ -55,7 +55,7 @@ uint32_t crc32(const void *buf, size_t size, uint32_t crc) {
   const uint8_t *p = buf;
   while (size--)
     crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
-  return crc ^ ~0U;
+  return crc;
 }
 
 int main(int argc, char *argv[]) {
@@ -106,6 +106,6 @@ int main(int argc, char *argv[]) {
     }
   }
   close(fd);
-  printf("value of a = 0x%08x\n", crc);
+  printf("value of a = 0x%08x\n", crc ^ ~0U);
   return EXIT_SUCCESS;
 }
