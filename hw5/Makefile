@@ -1,18 +1,27 @@
-AS = nasm  # NOTE: yasm тоже подойдёт
+AS = nasm #NOTE : yasm тоже подойдёт
 
-all: asm-prog
+		    all : asm
+			  - prog
 
-asm-prog: main.o
-	$(CC) -no-pie $^ -o $@
+			  asm
+			  - prog : main.o $(CC)
+			  - no
+			  - pie $
+     ^ -o $ @
 
-main.o: main.asm
-	$(AS) -felf64 $^
+	 main.o : main.asm $(AS)
+	 - felf64 $
+     ^
 
-clean:
-	rm -f asm-prog *.o core
+     clean : rm - f asm
+	     - prog
+		 *.o core
 
-.PHONY: clean
+		    .PHONY : clean
 
-docker:
-	# docker build --platform linux/amd64 -t asm-compiler .
-	docker run -it -v $(pwd):/app --rm asm-compiler
+			       docker :
+#docker build-- platform linux / amd64 - t asm - compiler.
+    docker run
+	     - it
+	     - v $(pwd) : / app-- rm asm
+	     - compiler

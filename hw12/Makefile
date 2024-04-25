@@ -1,11 +1,10 @@
-.PHONY: test
+.PHONY : test
 
-build: rm
-	mkdir build && cd build && cmake .. && make
+	   build : rm mkdir build &&cd build &&cmake..&&make
 
-rm:
-	rm -rf build
+		     rm : rm
+  - rf build
 
-test:
-	cd build/test && ctest --progress -V
-
+	test : cd build
+	       / test &&ctest-- progress
+  - V
