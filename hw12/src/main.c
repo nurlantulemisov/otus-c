@@ -8,68 +8,71 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/_types/_size_t.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
-#define MAX_LEN 1000
+#define MAX_LEN 9216
 
-atomic_size_t bytes = ATOMIC_VAR_INIT(0);
+atomic_size_t bytes = 0;
 
-hash_t *t = NULL;
+hash_t *refer_hash_t = NULL;
+hash_t *uri_hash_t = NULL;
 
-struct stat_url {
-  const char *request;
-  const char *refer;
-  uint64_t bytes;
-};
+uint64_t parse_apache_log(char *log) {
+  char *start, *end;
 
-uint64_t parse_apache_log(char *s) {
-  char ip[16], date[30], request[1000], referrer[1000], userAgent[1000];
-  int status, size;
+  // IP
+  end = (char *)memchr(log, ' ', strlen(log));
+  char ip[end - log + 1];
+  strncpy(ip, log, end - log);
+  ip[end - log] = '\0';
 
-  sscanf(s, "%s - - %[^ ] \"%[^\"]\" %d %d \"%[^\"]\" \"%[^\"]\"", ip, date,
-         request, &status, &size, referrer, userAgent);
+  // Request
+  start = (char *)memchr(log, '"', strlen(log)) + 1;
+  end = (char *)memchr(start, '"', strlen(start));
+  char request[end - start + 1];
+  strncpy(request, start, end - start);
+  request[end - start] = '\0';
 
-  printf("IP: %s\n", ip);
-  printf("Date: %s\n", date);
-  printf("Request: %s\n", request);
-  printf("Status: %d\n", status);
-  printf("Size: %d\n", size);
-  printf("Referrer: %s\n", referrer);
-  printf("User Agent: %s\n", userAgent);
+  char *uri;
+  uri = strtok(request, " ");
+  uri = strtok(NULL, " ");
+
+  start = (char *)memchr(end + 1, ' ', strlen(end + 1)) + 1;
+  end = (char *)memchr(start, ' ', strlen(start));
+  char status[end - start + 1];
+  strncpy(status, start, end - start);
+  status[end - start] = '\0';
+
+  // Bytes
+  start = (char *)memchr(end, ' ', strlen(end + 1)) + 1;
+  end = (char *)memchr(start, '"', strlen(start));
+  char bytes[end - start + 1];
+  strncpy(bytes, start, end - start);
+  bytes[end - start] = '\0';
+  uint64_t number = strtoull(bytes, NULL, 10);
+
+  // Referer
+  start = (char *)memchr(end, '"', strlen(end + 1)) + 1;
+  end = (char *)memchr(start, '"', strlen(start));
+  char referer[end - start + 1];
+  strncpy(referer, start, end - start);
+  referer[end - start] = '\0';
+
+  const char *ref = strtok(referer, " ");
+
+  if (ref != NULL && ref[0] != '-') {
+    hash_t_inc(refer_hash_t, ref, 1);
+  }
+
+  if (uri != NULL) {
+    hash_t_inc(uri_hash_t, uri, number);
+  }
+
+  return number;
 }
-
-// uint64_t parse_apache_log(char *s) {
-//   char ip[16];
-//   char date_time[27];
-//   char request[256];
-//   char method[8];
-//   char uri[256];
-//   char protocol[16];
-//   int status;
-//   int size;
-//   char referer[256];
-//   char user_agent[256];
-//
-//   sscanf(s, "%s - - [%[^]]] \"%[^\"]\" %u %d \"%[^\"]\" \"%[^\"]\"", ip,
-//          date_time, request, &status, &size, referer, user_agent);
-//
-//   // sscanf(request, "%s %s %s", method, uri, protocol);
-//
-//   // printf("IP: %s\n", ip);
-//   // printf("Date and Time: %s\n", date_time);
-//   // printf("Method: %s\n", method);
-//   // printf("URI: %s\n", uri);
-//   // printf("Protocol: %s\n", protocol);
-//   // printf("Status: %d\n", status);
-//   // printf("Size: %llu\n", size);
-//   // printf("Referer: %s\n", referer);
-//   // printf("User Agent: %s\n", user_agent);
-//
-//   return 0;
-//   // return (struct stat_url){.request = uri, .refer = referer, .bytes =
-//   size};
-// }
 
 void process_file(void *arg) {
   const char *filepath = (char *)arg;
@@ -77,97 +80,122 @@ void process_file(void *arg) {
     return;
   }
 
-  printf("Processing file: %s\n", filepath);
+  printf("processing file: %s\n", filepath);
 
   FILE *file = fopen(filepath, "r"); // Открываем файл для чтения
   if (file == NULL) {
-    perror("Failed to open file");
+    perror("failed to open file");
     return;
   }
 
-  // hash_t *ht = create_hash_t(1000);
-
   char line[MAX_LEN];
   uint64_t current_bytes = 0;
-  while (fgets(line, sizeof(line), file) != NULL) {
-    // printf("line: %s\n", line);
+  while (fgets(line, MAX_LEN, file) != NULL) {
     current_bytes += parse_apache_log(line);
-    // current_bytes += s.bytes;
-    // hash_t_inc(ht, s.request);
   }
+
   printf("finish file: %s\n", filepath);
   atomic_fetch_add(&bytes, current_bytes);
 
-  // print_hash_t(ht);
-  // hash_t_free(ht);
+  fclose(file);
 
   return;
 }
 
 int main(int argc, char *argv[]) {
-  parse_apache_log(
-      "62.148.157.93 - - [26/May/2020:12:10:31 +0000] \"GET "
-      "/%D0%9C%D0%B0%D1%80%D0%B8%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0-%D0%B4%D0%B5%D1%"
-      "82%D0%B8-%D0%BF%D1%80%D0%B8%D0%B4%D1%83%D0%BC%D0%B0%D0%B9%D1%82%D0%B5-%"
-      "D0%BF%D1%80%D0%B5%D0%B4%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F-%D1%"
-      "81%D0%BE-%D1%81%D0%BB%D0%BE%D0%B2%D0%B0%D0%BC%D0%B8/ HTTP/2.0\" 200 "
-      "10746 "
-      "\"https://baneks.site/"
-      "%D0%9C%D0%B0%D1%80%D0%B8%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0-%D0%B4%D0%B5%D1%"
-      "82%D0%B8-%D0%BF%D1%80%D0%B8%D0%B4%D1%83%D0%BC%D0%B0%D0%B9%D1%82%D0%B5-%"
-      "D0%BF%D1%80%D0%B5%D0%B4%D0%BB%D0%^CBE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F-%D1%"
-      "81%D0%BE-%D1%81%D0%BB%D0%BE%D0%B2%D0%B0%D0%BC%D0%B8/"
-      "Mozilla/5.0 (Linux; U; Android 8.1.0; ru-ru; Redmi 5A "
-      "Build/OPM1.171019.026) AppleWebKit/537.36 (KHTML, like Gecko) "
-      "Version/4.0 Chrome/71.0.3578.141 Mobile Safari/537.36 "
-      "XiaoMi/MiuiBrowser/12.2.3-g\"");
+  if (argc != 3) {
+    printf("argc=%d. logparser <num_thread> <log_dir>", argc);
+    return EXIT_FAILURE;
+  }
 
-  // cir_buffer_t *buf = create_cir_buffer(10);
-  // if (buf == NULL) {
-  //   perror("failed create cir buffer");
-  //   return EXIT_FAILURE;
-  // }
-  //
-  // // t = create_hash_t(100);
-  //
-  // thread_pool_t *pool = create_pool(1, buf);
-  // if (pool == NULL) {
-  //   perror("failed create thread pool");
-  //   return EXIT_FAILURE;
-  // }
-  //
-  // const char *dirname = argv[1];
-  // if (dirname == NULL) {
-  //   perror("dirname not passed");
-  //   return EXIT_FAILURE;
-  // }
-  //
-  // DIR *dir = opendir(dirname);
-  // if (dir == NULL) {
-  //   perror("Error opening directory");
-  //   return EXIT_FAILURE;
-  // }
-  // struct dirent *entry;
-  // while ((entry = readdir(dir)) != NULL) {
-  //   if (entry->d_type == DT_REG) {
-  //     // +2 для разделителя и завершающего нулевого символа
-  //     char full_path[MAX_LEN];
-  //     snprintf(full_path, sizeof(full_path), "%s/%s", dirname,
-  //     entry->d_name); add_to_pool(pool, full_path, process_file);
-  //   }
-  // }
-  //
-  // closedir(dir);
-  //
-  // while (cir_buffer_size(buf) != 0) {
-  //   sleep(1);
-  // }
-  //
-  // stop_pool(pool);
-  //
-  // // print_hash_t(t);
-  //
-  // // hash_t_free(t);
-  // printf("Counter: %zu\n", atomic_load(&bytes));
+  const char *n_thread = argv[1];
+  if (n_thread == NULL) {
+    perror("num_thread is not passed. logparser <num_thread> <log_dir>");
+    return EXIT_FAILURE;
+  }
+
+  const char *dirname = argv[2];
+  if (dirname == NULL) {
+    perror("dirname is not passed. logparser <num_thread> <log_dir>");
+    return EXIT_FAILURE;
+  }
+
+  DIR *dir = opendir(dirname);
+  if (dir == NULL) {
+    perror("error opening directory");
+    return EXIT_FAILURE;
+  }
+
+  struct dirent *entry;
+  size_t file_count = 0;
+  while ((entry = readdir(dir)) != NULL) {
+    if (entry->d_type == DT_REG) {
+      file_count++;
+    }
+  }
+
+  closedir(dir);
+
+  size_t num_thread = atoi(n_thread);
+  if (num_thread <= 0 || num_thread > file_count) {
+    num_thread = file_count;
+    printf("num_thread set default value. ");
+  }
+  printf("num_thread=%zu\n", num_thread);
+
+  cir_buffer_t *buf = create_cir_buffer(10);
+  if (buf == NULL) {
+    perror("failed create cir buffer");
+    return EXIT_FAILURE;
+  }
+
+  refer_hash_t = create_hash_t(100);
+  if (refer_hash_t == NULL) {
+    perror("failed init hash table");
+    return EXIT_FAILURE;
+  }
+
+  uri_hash_t = create_hash_t(100);
+  if (uri_hash_t == NULL) {
+    perror("failed init hash table");
+    return EXIT_FAILURE;
+  }
+
+  thread_pool_t *pool = create_pool(num_thread, buf);
+  if (pool == NULL) {
+    perror("failed create thread pool");
+    return EXIT_FAILURE;
+  }
+
+  dir = opendir(dirname);
+  if (dir == NULL) {
+    perror("Error opening directory");
+    return EXIT_FAILURE;
+  }
+
+  while ((entry = readdir(dir)) != NULL) {
+    if (entry->d_type == DT_REG) {
+      char full_path[120];
+      snprintf(full_path, sizeof(full_path), "%s/%s", dirname, entry->d_name);
+      add_to_pool(pool, full_path, process_file);
+    }
+  }
+
+  closedir(dir);
+
+  while (cir_buffer_size(buf) != 0) {
+    sleep(1);
+  }
+
+  stop_pool(pool);
+
+  printf("\nTop 10 refer: \n");
+  print_top(refer_hash_t, 10);
+  printf("\nTop 10 the haviest uri: \n");
+  print_top(uri_hash_t, 10);
+
+  hash_t_free(refer_hash_t);
+  hash_t_free(uri_hash_t);
+  printf("\nMax size: %zu Gb\n", atomic_load(&bytes) / 1024 / 1024 / 1024);
   return EXIT_SUCCESS;
 }
