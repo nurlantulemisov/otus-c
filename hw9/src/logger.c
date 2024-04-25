@@ -1,4 +1,5 @@
 #include "logger.h"
+
 #include <execinfo.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -22,14 +23,16 @@ static struct {
   uint64_t flushedTime;
 } s_flog;
 
-static off_t log_file_size(const char *filename) {
+static off_t
+log_file_size(const char *filename) {
   struct stat st;
   stat(filename, &st);
   return st.st_size;
 }
 
-bool init_logger(const char *f) {
-  if (is_init) {
+bool
+init_logger(const char *f) {
+  if(is_init) {
     return true;
   }
 
@@ -37,7 +40,7 @@ bool init_logger(const char *f) {
   pthread_mutex_lock(&mutex);
 
   FILE *log_file = fopen(f, "a");
-  if (log_file == NULL) {
+  if(log_file == NULL) {
     perror("failed open file");
     return false;
   }
@@ -53,8 +56,9 @@ bool init_logger(const char *f) {
   return true;
 }
 
-static bool log_rotate() {
-  if (s_flog.currentFileSize < s_flog.maxFileSize) {
+static bool
+log_rotate() {
+  if(s_flog.currentFileSize < s_flog.maxFileSize) {
     return s_flog.output != NULL;
   }
 
@@ -62,32 +66,33 @@ static bool log_rotate() {
 
   struct timespec tms;
 
-  if (clock_gettime(CLOCK_REALTIME, &tms)) {
+  if(clock_gettime(CLOCK_REALTIME, &tms)) {
     return s_flog.output != NULL;
   }
 
   char new[2 * 256];
   char timestamp[100];
-  snprintf(timestamp, sizeof(timestamp), "%lld.%.9ld", (long long)tms.tv_sec,
-           tms.tv_nsec);
+  snprintf(timestamp, sizeof(timestamp), "%lld.%.9ld", (long long) tms.tv_sec,
+	   tms.tv_nsec);
 
   snprintf(new, sizeof(s_flog.filename) + sizeof(timestamp), "%s.%s",
-           s_flog.filename, timestamp);
+	   s_flog.filename, timestamp);
 
-  if (rename(s_flog.filename, new)) {
+  if(rename(s_flog.filename, new)) {
     return false;
   }
 
   s_flog.output = fopen(s_flog.filename, "a");
-  if (s_flog.output == NULL) {
+  if(s_flog.output == NULL) {
     return false;
   }
 
   return true;
 }
 
-static char getLevelChar(LogLevel level) {
-  switch (level) {
+static char
+getLevelChar(LogLevel level) {
+  switch(level) {
   case LogLevel_TRACE:
     return 'T';
   case LogLevel_DEBUG:
@@ -105,25 +110,26 @@ static char getLevelChar(LogLevel level) {
   }
 }
 
-static bool print_backtrace(FILE *file) {
+static bool
+print_backtrace(FILE *file) {
   void *buffer[10];
   int nptrs = backtrace(buffer, 10);
   char **strings = backtrace_symbols(buffer, nptrs);
-  if (strings == NULL) {
+  if(strings == NULL) {
     perror("backtrace_symbols");
     return false;
   }
   fprintf(file, "Backtrace:\n");
-  for (int i = 0; i < nptrs; i++) {
+  for(int i = 0; i < nptrs; i++) {
     fprintf(file, "%s\n", strings[i]);
   }
   free(strings);
   return true;
 }
 
-void logger_log(LogLevel level, const char *file, int line, const char *fmt,
-                ...) {
-  if (is_init) {
+void
+logger_log(LogLevel level, const char *file, int line, const char *fmt, ...) {
+  if(is_init) {
     return;
   }
 
@@ -132,23 +138,24 @@ void logger_log(LogLevel level, const char *file, int line, const char *fmt,
 
   pthread_mutex_lock(&mutex);
 
-  if (log_rotate()) {
+  if(log_rotate()) {
     size_t size = 0;
-    if ((size = fprintf(s_flog.output, "%c %s:%d: ", getLevelChar(level), file,
-                        line)) > 0) {
+    if((size =
+	  fprintf(s_flog.output, "%c %s:%d: ", getLevelChar(level), file, line))
+       > 0) {
       total_size += size;
     }
     va_start(farg, fmt);
-    if ((size = vfprintf(s_flog.output, fmt, farg)) > 0) {
+    if((size = vfprintf(s_flog.output, fmt, farg)) > 0) {
       total_size += size;
     }
     va_end(farg);
 
-    if ((size = fprintf(s_flog.output, "\n")) > 0) {
+    if((size = fprintf(s_flog.output, "\n")) > 0) {
       total_size += size;
     }
 
-    if (level == LogLevel_ERROR) {
+    if(level == LogLevel_ERROR) {
       print_backtrace(s_flog.output);
     }
 

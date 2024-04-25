@@ -4,20 +4,20 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define __FILENAME__                                                           \
+#define __FILENAME__ \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define LOG_TRACE(fmt, ...)                                                    \
+#define LOG_TRACE(fmt, ...) \
   logger_log(LogLevel_TRACE, __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
-#define LOG_DEBUG(fmt, ...)                                                    \
+#define LOG_DEBUG(fmt, ...) \
   logger_log(LogLevel_DEBUG, __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
-#define LOG_INFO(fmt, ...)                                                     \
+#define LOG_INFO(fmt, ...) \
   logger_log(LogLevel_INFO, __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
-#define LOG_WARN(fmt, ...)                                                     \
+#define LOG_WARN(fmt, ...) \
   logger_log(LogLevel_WARN, __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
-#define LOG_ERROR(fmt, ...)                                                    \
+#define LOG_ERROR(fmt, ...) \
   logger_log(LogLevel_ERROR, __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
-#define LOG_FATAL(fmt, ...)                                                    \
+#define LOG_FATAL(fmt, ...) \
   logger_log(LogLevel_FATAL, __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
 typedef enum {
@@ -42,9 +42,10 @@ typedef enum {
  * @param[in] fmt A format string
  * @param[in] ... Additional arguments
  */
-void logger_log(LogLevel level, const char *file, int line, const char *fmt,
-                ...);
+void
+logger_log(LogLevel level, const char *file, int line, const char *fmt, ...);
 
-bool init_logger(const char *f);
+bool
+init_logger(const char *f);
 
 #endif
