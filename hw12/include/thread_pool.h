@@ -2,6 +2,7 @@
 #define THREAD_POOL_H
 
 #include "circular_buffer.h"
+
 #include <pthread.h>
 #include <stdbool.h>
 
@@ -16,10 +17,13 @@ typedef struct {
   bool stop; // for stopping
 } thread_pool_t;
 
-thread_pool_t *create_pool(size_t num_threads, cir_buffer_t *buf);
+thread_pool_t *
+create_pool(size_t num_threads, cir_buffer_t *buf);
 
-void add_to_pool(thread_pool_t *t_pool, char *filename, callback cb);
+void
+add_to_pool(thread_pool_t *t_pool, char *filename, callback cb);
 
-void stop_pool(thread_pool_t *t_pool);
+void
+stop_pool(thread_pool_t *t_pool);
 
 #endif // !THREAD_POOL_H

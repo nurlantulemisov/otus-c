@@ -8,8 +8,8 @@ typedef void (*callback)(void *);
 
 typedef struct {
   void (*function)(
-      void *arg); // Указатель на функцию, которая должна быть выполнена
-  void *arg;      // Аргумент для передачи в функцию
+    void *arg); // Указатель на функцию, которая должна быть выполнена
+  void *arg;	// Аргумент для передачи в функцию
 } task_t;
 
 typedef struct {
@@ -20,14 +20,19 @@ typedef struct {
   bool full;
 } cir_buffer_t;
 
-cir_buffer_t *create_cir_buffer(size_t max);
+cir_buffer_t *
+create_cir_buffer(size_t max);
 
-void cir_buffer_free(cir_buffer_t *buf);
+void
+cir_buffer_free(cir_buffer_t *buf);
 
-bool cir_buffer_put(cir_buffer_t *buf, task_t *t);
+bool
+cir_buffer_put(cir_buffer_t *buf, task_t *t);
 
-task_t *cir_buffer_get(cir_buffer_t *buf);
+task_t *
+cir_buffer_get(cir_buffer_t *buf);
 
-size_t cir_buffer_size(cir_buffer_t *buf);
+size_t
+cir_buffer_size(cir_buffer_t *buf);
 
 #endif // !CIRCULAR_BUFFER_H

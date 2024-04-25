@@ -1,16 +1,20 @@
 #include "thread_pool.h"
+
 #include "circular_buffer.h"
+
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static void *thread_executor(void *args);
+static void *
+thread_executor(void *args);
 
-thread_pool_t *create_pool(size_t num_threads, cir_buffer_t *buf) {
-  thread_pool_t *t = (thread_pool_t *)malloc(sizeof(thread_pool_t));
+thread_pool_t *
+create_pool(size_t num_threads, cir_buffer_t *buf) {
+  thread_pool_t *t = (thread_pool_t *) malloc(sizeof(thread_pool_t));
 
-  t->threads = (pthread_t *)malloc(sizeof(pthread_t) * num_threads);
+  t->threads = (pthread_t *) malloc(sizeof(pthread_t) * num_threads);
   t->cap = num_threads;
   t->stop = false;
   t->b = buf;
@@ -19,34 +23,34 @@ thread_pool_t *create_pool(size_t num_threads, cir_buffer_t *buf) {
   pthread_cond_init(&t->full, NULL);
   pthread_cond_init(&t->ready, NULL);
 
-  for (int i = 0; i < num_threads; i++) {
-    pthread_create(&t->threads[i], NULL, (void *)thread_executor, (void *)t);
+  for(int i = 0; i < num_threads; i++) {
+    pthread_create(&t->threads[i], NULL, (void *) thread_executor, (void *) t);
   }
 
   return t;
 }
 
-void executeTask(task_t *task) {
+void
+executeTask(task_t *task) {
   task->function(task->arg);
-  // printf("Task %s is executed by thread %ld\n", (char *)task->arg,
-  // pthread_self());
 }
 
-static void *thread_executor(void *args) {
-  thread_pool_t *pool = (thread_pool_t *)args;
-  while (1) {
+static void *
+thread_executor(void *args) {
+  thread_pool_t *pool = (thread_pool_t *) args;
+  while(1) {
     pthread_mutex_lock(&pool->mu);
-    while (cir_buffer_size(pool->b) == 0 && !pool->stop) {
+    while(cir_buffer_size(pool->b) == 0 && !pool->stop) {
       pthread_cond_wait(&pool->ready, &pool->mu); // wait signal for exec task
     }
 
-    if (pool->stop) {
+    if(pool->stop) {
       pthread_mutex_unlock(&pool->mu);
       pthread_exit(NULL);
     }
 
     task_t *t = cir_buffer_get(pool->b);
-    if (t == NULL) {
+    if(t == NULL) {
       pthread_mutex_unlock(&pool->mu);
       pthread_exit(NULL);
     }
@@ -60,16 +64,17 @@ static void *thread_executor(void *args) {
   }
 }
 
-void add_to_pool(thread_pool_t *t_pool, char *filename, callback cb) {
+void
+add_to_pool(thread_pool_t *t_pool, char *filename, callback cb) {
   pthread_mutex_lock(&t_pool->mu);
 
-  while (t_pool->b->full) {
+  while(t_pool->b->full) {
     printf("buffer full. waiting\n");
     pthread_cond_wait(&t_pool->full, &t_pool->mu);
   }
 
-  task_t task = {.function = cb, .arg = (void *)filename};
-  if (!cir_buffer_put(t_pool->b, &task)) {
+  task_t task = {.function = cb, .arg = (void *) filename};
+  if(!cir_buffer_put(t_pool->b, &task)) {
     pthread_mutex_unlock(&t_pool->mu);
     return;
   }
@@ -78,13 +83,14 @@ void add_to_pool(thread_pool_t *t_pool, char *filename, callback cb) {
   pthread_cond_signal(&t_pool->ready);
 }
 
-void stop_pool(thread_pool_t *t_pool) {
+void
+stop_pool(thread_pool_t *t_pool) {
   pthread_mutex_lock(&t_pool->mu);
   t_pool->stop = true;
   pthread_cond_broadcast(&t_pool->ready);
   pthread_mutex_unlock(&t_pool->mu);
 
-  for (int i = 0; i < t_pool->cap; ++i) {
+  for(int i = 0; i < t_pool->cap; ++i) {
     pthread_join(t_pool->threads[i], NULL);
   }
 
