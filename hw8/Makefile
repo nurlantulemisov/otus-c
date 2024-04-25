@@ -1,13 +1,11 @@
 
-build : mkdir build &&cd build &&cmake..&&make
+build:
+	mkdir build && cd build && cmake .. && make
 
-	  clean : rm
-  - rf bin build
+clean:
+	rm -rf bin build
 
-    style
-  - fix : clang - format-- assume - filename =.clang - format
-					      - i src
-						  / main
-						      .c
+style-fix:
+	clang-format --assume-filename=.clang-format -i src/main.c
 
-						      .PHONY : build clean
+.PHONY: build clean

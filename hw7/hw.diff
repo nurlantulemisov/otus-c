@@ -1,27 +1,29 @@
--- -clib / src / common / clib - package - copy.c 2024 - 02
-  - 21 22 : 15 : 51.232904048 + 0200 ++ +clib / src / common / clib
-  - package.c 2024 - 02 - 21 22 : 31 : 28.744050246 + 0200 @ @-664,
-  6 + 664, 9 @ @json = res->data;
-_debug("status: %d", res->status);
-if(!res || !res->ok) {
-  +if(res != NULL) {
-    +http_get_free(res);
-    +
-  }
-  goto download;
-}
-log = "fetch";
-@ @-1002, 6 + 1005, 7 @ @ *status = rc;
-(void) data->pkg->refs--;
-pthread_exit((void *) status);
-+ free(status);
-return (void *) rc;
-}
-#endif
-@ @-1661, 7 + 1665, 7 @ @FREE(version);
-FREE(flags);
-#undef FREE
-- + clib_package_cleanup();
-if(pkg->src)
-  list_destroy(pkg->src);
-pkg->src = 0;
+--- clib/src/common/clib-package-copy.c	2024-02-21 22:15:51.232904048 +0200
++++ clib/src/common/clib-package.c	2024-02-21 22:31:28.744050246 +0200
+@@ -664,6 +664,9 @@
+       json = res->data;
+       _debug("status: %d", res->status);
+       if (!res || !res->ok) {
++        if (res != NULL) {
++          http_get_free(res);
++        }
+         goto download;
+       }
+       log = "fetch";
+@@ -1002,6 +1005,7 @@
+   *status = rc;
+   (void)data->pkg->refs--;
+   pthread_exit((void *)status);
++  free(status);
+   return (void *)rc;
+ }
+ #endif
+@@ -1661,7 +1665,7 @@
+   FREE(version);
+   FREE(flags);
+ #undef FREE
+-
++  clib_package_cleanup();
+   if (pkg->src)
+     list_destroy(pkg->src);
+   pkg->src = 0;

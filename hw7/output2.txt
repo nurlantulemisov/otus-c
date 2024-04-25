@@ -1,31 +1,7 @@
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - install || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - parse - author || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - new - from - slug || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - parse - name || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - load - from - manifest || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - url || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - install - dev - dependencies || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - load - manifest - file || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - install - dependencies || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - dependency - new || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - new || exit 1;
-valgrind-- leak - check = full-- error - exitcode =
-  3 ./ package - parse - version || exit 1;
-== 6730 == Memcheck,
-  a memory error detector == 6730 == Copyright(C) 2002 - 2017,
-  and GNU
-  GPL'd, by Julian Seward et al. == 6730 == Using Valgrind - 3.15.0 and LibVEX; rerun with -h for copyright info
+valgrind --leak-check=full --error-exitcode=3 ./package-install || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-parse-author || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-new-from-slug || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-parse-name || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-load-from-manifest || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-url || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-install-dev-dependencies || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-load-manifest-file || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-install-dependencies || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-dependency-new || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-new || exit 1;  valgrind --leak-check=full --error-exitcode=3 ./package-parse-version || exit 1;
+==6730== Memcheck, a memory error detector
+==6730== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==6730== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
 ==6730== Command: ./package-install
 ==6730== 
 ==6730== Conditional jump or move depends on uninitialised value(s)
