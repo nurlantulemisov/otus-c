@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <sys/_pthread/_pthread_mutex_t.h>
+#include <sys/_types/_size_t.h>
 
 struct bucket_t {
   const char *key;
